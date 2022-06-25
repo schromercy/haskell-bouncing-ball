@@ -96,7 +96,7 @@ updateBall dt ((x, y), radius, (dx, dy), (incDx, incDy), (maxDx, maxDy), (boundX
             -- update colors
             updateColors isUpdate
                 | isUpdate = do
-                    let newColors = popAndPushArray colors
+                    let newColors = popThenPush colors
                     appendLineLog $ "Ball new color is " ++ show (head newColors)
                     return newColors
                 | otherwise = return colors
@@ -110,6 +110,10 @@ clamp :: (Ord a)
       -- ^ The value to clamp
       -> a
 clamp mn mx val = max mn (min val mx)
+
+popThenPush :: [a] -> [a]
+popThenPush [] = []
+popThenPush (x:xs) = xs ++ [x]
 
 logFileName :: String
 logFileName = "log.txt"
@@ -130,7 +134,3 @@ formatLogMessage :: String -> IO String
 formatLogMessage message = do
     zonedTime <- getZonedTime
     return $ show zonedTime ++ ": " ++ message
-
-popAndPushArray :: [a] -> [a]
-popAndPushArray (x:xs) = xs ++ [x]
-popAndPushArray arr = arr
