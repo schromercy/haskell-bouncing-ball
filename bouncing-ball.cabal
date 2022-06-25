@@ -31,6 +31,7 @@ executable bouncing-ball
     -- other-extensions:
     build-depends:    base ^>=4.15.1.0,
                       random,
-                      gloss
+                      gloss,
+                      time
     hs-source-dirs:   app
     default-language: Haskell2010
