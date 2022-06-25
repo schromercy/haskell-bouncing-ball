@@ -7,29 +7,29 @@ main :: IO ()
 main = do
     putStrLn "Input bound x (100 - 500): "
     boundXStr <- getLine
-    let boundX = clamp (read boundXStr :: Float) 100 500
+    let boundX = clamp 100 500 (read boundXStr :: Float)
 
     putStrLn "Input bound y (100 - 500): "
     boundYStr <- getLine
-    let boundY = clamp (read boundYStr :: Float) 100 500
+    let boundY = clamp 100 500 (read boundYStr :: Float)
 
     putStrLn "Input ball size (10 - 50): "
     ballRadiusStr <- getLine
-    let ballRadius = clamp (read ballRadiusStr :: Float) 10 50
+    let ballRadius = clamp 10 50 (read ballRadiusStr :: Float)
 
     putStrLn "Input initial ball speed (50 - 100): "
     initVelocityStr <- getLine
-    let initVelocity = clamp (read initVelocityStr :: Float) 50 100
+    let initVelocity = clamp 50 100 (read initVelocityStr :: Float)
     let ballInitVelocity = (initVelocity, initVelocity)
 
     putStrLn "Input velocity increment (0 - 100): "
     incVelocityStr <- getLine
-    let incVelocity = clamp (read incVelocityStr :: Float) 0 100
+    let incVelocity = clamp 0 100 (read incVelocityStr :: Float)
     let ballIncVelocity = (incVelocity, incVelocity)
 
     putStrLn "Input maximal velocity (50 - 1000): "
     maxVelocityStr <- getLine
-    let maxVelocity = clamp (read maxVelocityStr :: Float) 100 1000
+    let maxVelocity = clamp 100 1000 (read maxVelocityStr :: Float)
     let ballMaxVelocity = (maxVelocity, maxVelocity)
 
     x <- getStdRandom (randomR (-boundX, boundX))
@@ -69,5 +69,13 @@ updateBall dt ((x, y), radius, (dx, dy), (incDx, incDy), (maxDx, maxDy), (boundX
                 h'      = h + dt * dh
                 absDh'  = min (abs dh + incDh) maxDh
 
-clamp :: Float -> Float -> Float -> Float
-clamp value minValue maxValue = min (max value minValue) maxValue
+clamp :: (Ord a)
+      => a
+      -- ^ The minimum value
+      -> a
+      -- ^ The maximum value
+      -> a
+      -- ^ The value to clamp
+      -> a
+clamp mn mx val = max mn (min val mx)
+
