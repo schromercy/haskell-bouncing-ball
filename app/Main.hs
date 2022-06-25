@@ -49,7 +49,7 @@ main = do
     appendLineLog $ "Ball random position is (" ++ show x ++ ", " ++ show y ++ ")"
 
     let bound = (boundX, boundY)
-    let ball = ((x, y), ballRadius, ballInitVelocity, ballIncVelocity, ballMaxVelocity, bound)
+    let ball = ((x, y), ballRadius, ballInitVelocity, ballIncVelocity, ballMaxVelocity, bound, [white, red, green, blue])
 
     -- Start simulation
     appendLineLog "Starting simulation..."
@@ -62,34 +62,44 @@ main = do
 --      Velocity increment
 --      Max velocity
 --      Bound
-type Ball = (Point, Float, Vector, Vector, Vector, Point)
+--      Possible Colors
+type Ball = (Point, Float, Vector, Vector, Vector, Point, [Color])
 
 window :: String -> Point -> Display
 window title (boundX, boundY) = InWindow title  (2 * floor boundX, 2 * floor boundY) (0, 0)
 
 drawBall :: Ball -> IO Picture
-drawBall ((x, y), radius, _, _, _, _) = do
-    return (translate x y $ color white $ circleSolid radius)
+drawBall ((x, y), radius, _, _, _, _, colors) = do
+    return (translate x y $ color (head colors) $ circleSolid radius)
 
 updateBall :: Float -> Ball -> IO Ball
-updateBall dt ((x, y), radius, (dx, dy), (incDx, incDy), (maxDx, maxDy), (boundX, boundY)) = do
-        (x', dx') <- clip "X" x (boundX - radius) dx incDx maxDx
-        (y', dy') <- clip "Y" y (boundY - radius) dy incDy maxDy
-        return ((x', y'), radius, (dx', dy'), (incDx, incDy), (maxDx, maxDy), (boundX, boundY))
+updateBall dt ((x, y), radius, (dx, dy), (incDx, incDy), (maxDx, maxDy), (boundX, boundY), colors) = do
+        (x', dx', isBounceX) <- clip "X" x (boundX - radius) dx incDx maxDx
+        (y', dy', isBounceY) <- clip "Y" y (boundY - radius) dy incDy maxDy
+        colors' <- updateColors (isBounceX || isBounceY)
+        return ((x', y'), radius, (dx', dy'), (incDx, incDy), (maxDx, maxDy), (boundX, boundY), colors')
         where
             -- clip to a bounding interval
             clip axis h max dh incDh maxDh
                 | h' > max  = do
                     appendLineLog $ "Bounce, " ++ axis ++ "-speed now: " ++ show absDh'
-                    return ( max, -absDh')
+                    return ( max, -absDh', True)
                 | h' < -max = do
                     appendLineLog $ "Bounce, " ++ axis ++ "-speed now: " ++ show absDh'
-                    return (-max, absDh')
+                    return (-max, absDh', True)
                 | otherwise = do
-                    return (h', dh)
+                    return (h', dh, False)
                 where
                     h'      = h + dt * dh
                     absDh'  = min (abs dh + incDh) maxDh
+            
+            -- update colors
+            updateColors isUpdate
+                | isUpdate = do
+                    let newColors = popAndPushArray colors
+                    appendLineLog $ "Ball new color is " ++ show (head newColors)
+                    return newColors
+                | otherwise = return colors
 
 clamp :: (Ord a)
       => a
@@ -120,3 +130,7 @@ formatLogMessage :: String -> IO String
 formatLogMessage message = do
     zonedTime <- getZonedTime
     return $ show zonedTime ++ ": " ++ message
+
+popAndPushArray :: [a] -> [a]
+popAndPushArray (x:xs) = xs ++ [x]
+popAndPushArray arr = arr
