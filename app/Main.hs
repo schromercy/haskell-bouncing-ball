@@ -45,13 +45,13 @@ drawBall ((x, y), radius, _, _, _, _, colors) = do
 
 updateBall :: Float -> Ball -> IO Ball
 updateBall dt ((x, y), radius, (dx, dy), (incDx, incDy), (maxDx, maxDy), (boundX, boundY), colors) = do
-        (x', dx', isBounceX) <- clip "X" x (boundX - radius) dx incDx maxDx
-        (y', dy', isBounceY) <- clip "Y" y (boundY - radius) dy incDy maxDy
+        (x', dx', isBounceX) <- updateAxisMovement "X" x (boundX - radius) dx incDx maxDx
+        (y', dy', isBounceY) <- updateAxisMovement "Y" y (boundY - radius) dy incDy maxDy
         colors' <- updateColors (isBounceX || isBounceY)
         return ((x', y'), radius, (dx', dy'), (incDx, incDy), (maxDx, maxDy), (boundX, boundY), colors')
         where
-            -- clip to a bounding interval
-            clip axis h max dh incDh maxDh
+            -- update ball movement in specific axis (X or Y)
+            updateAxisMovement axis h max dh incDh maxDh
                 | h' > max  = do
                     appendLineLog $ "Bounce, " ++ axis ++ "-speed now: " ++ show absDh'
                     return ( max, -absDh', True)
